@@ -16,7 +16,7 @@ class Config:
     magic_claw_key = "z"
 
     # Key to trigger Mage's teleport skill
-    teleport_key = "e"
+    teleport_key = "e" # set to "", if need to disable teleport skill
 
     # Key for jumping.
     jump_key = "x"
@@ -27,6 +27,10 @@ class Config:
     # Key to use a mana potion.
     add_mp_key = "2"
 
+    # Buff skill keys, e.g., magical sheild, angel blessing
+    buff_skill_keys     = []
+    buff_skill_cooldown = [] # Second
+    buff_skill_active_duration = 1 # second
     # ────────────────
     # System
     # ────────────────
@@ -70,19 +74,19 @@ class Config:
     # ────────────────
     # aoe skill attack range relative to player position
     aoe_skill_range_x = 400 # pixels (horizontal range)
-    aoe_skill_range_y = 150  # pixels (vertical range)
+    aoe_skill_range_y = 170  # pixels (vertical range)
     # magic claw skill attack range relative to player position
     magic_claw_range_x = 350 # pixels (horizontal range)
     magic_claw_range_y = 70  # pixels (vertical range)
     # attack cooldown time in seconds
-    attack_cooldown = 0.05  # seconds between attacks
+    attack_cooldown = 0.035  # seconds between attacks
     # character turn delay before attack
     character_turn_delay = 0.02  # seconds to wait for character to turn before attacking
 
     # ────────────────
     # Monster Detection
     # ────────────────
-    monster_diff_thres = 0.8 # 0.8   # template match similarity threshold
+    monster_diff_thres = 0.87 # 0.8   # template match similarity threshold
     monster_search_margin = 50  # extra margin around attack box for monster search
     blur_range = 5
     monster_detect_mode = "contour_only" # "contour_only" "color", "grayscale" "template_free"
@@ -139,13 +143,12 @@ class Config:
     mp_bar_bottom_right = (678, 749)
     exp_bar_top_left = (699, 732)
     exp_bar_bottom_right = (860, 749)
-    heal_ratio = 0.33 # heal when hp is below 50%
-    add_mp_ratio = 0.33 # drink potion when mp is below 50%
+    heal_ratio = 0.5 # heal when hp is below 50%
+    add_mp_ratio = 0.3 # drink potion when mp is below 50%
 
     # ────────────────
     # Mini-Map
     # ────────────────
-    minimap_player_color = (136, 255, 255) # yellow dot, (B, G, R)
     minimap_upscale_factor = 4 # upscale 4 time for debug route image
 
     # ────────────────
@@ -155,6 +158,16 @@ class Config:
                               # 1.0 means the right boarder of game window
     turn_point_thres = 10 # 10 frames
     patrol_attack_interval = 2.5 # sec, attack every 2.5 second
+
+    # ────────────────
+    # Map Scan
+    # ────────────────
+    map_scan_padding = 30 # pixel, How width the black margin on map
+
+    # ────────────────
+    # Route recoder
+    # ────────────────
+    route_recoder_draw_blob_cooldown = 0.7 # second, can only draw blob for every 0.7 second
 
     # ────────────────
     # Don't modify the following parameter unless you know what you are doing
@@ -175,6 +188,8 @@ class Config:
         (255,255,0): "goal", # yellow
         (255,0,127): "teleport up", # pink
         (127,0,255): "teleport down", # light_purple
+        (0, 127, 0): "teleport left", # dark green
+        (139, 69, 19): "teleport right" # brown
     }
 
-    window_size = (754, 1282)
+    window_size = (752, 1282)
