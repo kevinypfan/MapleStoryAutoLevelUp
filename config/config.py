@@ -13,16 +13,16 @@ class Config:
     aoe_skill_key = "q"
 
     # Key to trigger the basic attack skill, like Mage's Magic Claw.
-    magic_claw_key = "w"
+    magic_claw_key = "z"
 
     # Key to trigger Mage's teleport skill
     teleport_key = "e"
 
     # Key for jumping.
-    jump_key = "space"
+    jump_key = "x"
 
     # Key to use a health potion.
-    heal_key = "q"
+    heal_key = "1"
 
     # Key to use a mana potion.
     add_mp_key = "2"
@@ -31,7 +31,7 @@ class Config:
     # System
     # ────────────────
     # FPS(Frame per Second) limit for main thread
-    fps_limit = 10
+    fps_limit = 24
 
     # ────────────────
     # Mage Teleport
@@ -75,7 +75,7 @@ class Config:
     magic_claw_range_x = 350 # pixels (horizontal range)
     magic_claw_range_y = 70  # pixels (vertical range)
     # attack cooldown time in seconds
-    attack_cooldown = 0.03  # seconds between attacks
+    attack_cooldown = 0.05  # seconds between attacks
     # character turn delay before attack
     character_turn_delay = 0.02  # seconds to wait for character to turn before attacking
 
@@ -101,7 +101,7 @@ class Config:
     # ────────────────
     up_drag_duration = 1.0 # hold duration for 'up' key to prevent rope-sticking (in seconds)
     down_drag_duration = 1.0 # seconds
-    watch_dog_timeout = 10 # seconds, if player doesn't move for 3 second, random perform an action
+    watch_dog_timeout = 8 # seconds, if player doesn't move for 3 second, random perform an action
     watch_dog_range = 10 # pixel, if player location is smaller than watch_dog_range, consider it doesn't move
 
     # ────────────────
@@ -139,8 +139,8 @@ class Config:
     mp_bar_bottom_right = (678, 749)
     exp_bar_top_left = (699, 732)
     exp_bar_bottom_right = (860, 749)
-    heal_ratio = 0.5 # heal when hp is below 50%
-    add_mp_ratio = 0.5 # drink potion when mp is below 50%
+    heal_ratio = 0.33 # heal when hp is below 50%
+    add_mp_ratio = 0.33 # drink potion when mp is below 50%
 
     # ────────────────
     # Mini-Map
@@ -177,4 +177,4 @@ class Config:
         (127,0,255): "teleport down", # light_purple
     }
 
-    window_size = (752, 1282)
+    window_size = (754, 1282)
