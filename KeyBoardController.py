@@ -259,17 +259,15 @@ class KeyBoardController():
                 self.press_key(self.attack_key)
                 pyautogui.keyUp("right")
 
-            elif self.command == "stop":
-                self.release_all_key()
-                self.command = ""  # Clear command after stopping
-
             elif self.command == "heal":
                 self.press_key(self.cfg.heal_key)
-                self.command = ""
 
             elif self.command == "add mp":
                 self.press_key(self.cfg.add_mp_key)
-                self.command = ""
+
+            elif self.command == "stop":
+                self.release_all_key()
+                self.command = ""  # Clear command after stopping
 
             else:
                 pass
