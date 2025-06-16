@@ -228,20 +228,51 @@ class MapleStoryBot:
             loc_nametag[1] - pad_y + self.cfg.camera_ceiling
         )
 
-        # Update name tag location if confidence is good
+        # Add tolerance for skill effects blocking nametag
+        if not hasattr(self, 'nametag_fail_count'):
+            self.nametag_fail_count = 0
+        if not hasattr(self, 'last_good_nametag_time'):
+            self.last_good_nametag_time = time.time()
+            
+        # Always update name tag location but validate quality
         if score < self.cfg.nametag_diff_thres:
+            # High confidence detection - update and use immediately
             self.loc_nametag = loc_nametag
-        loc_player = (
-            self.loc_nametag[0] - self.cfg.nametag_offset[0],
-            self.loc_nametag[1] - self.cfg.nametag_offset[1]
-        )
+            self.nametag_fail_count = 0
+            self.last_good_nametag_time = time.time()
+            loc_player = (
+                loc_nametag[0] - self.cfg.nametag_offset[0],
+                loc_nametag[1] - self.cfg.nametag_offset[1]
+            )
+        else:
+            # Low confidence detection - check if it's temporary (skill effect)
+            self.nametag_fail_count += 1
+            time_since_last_good = time.time() - self.last_good_nametag_time
+            
+            # If recent failures are likely due to skill effects, keep using last position
+            if (self.nametag_fail_count < self.cfg.nametag_skill_tolerance_frames and 
+                time_since_last_good < self.cfg.nametag_skill_tolerance_time):
+                # Use previous good position (likely temporary skill blocking)
+                loc_player = (
+                    self.loc_nametag[0] - self.cfg.nametag_offset[0],
+                    self.loc_nametag[1] - self.cfg.nametag_offset[1]
+                )
+            else:
+                # Too many failures or too long - accept current detection even if poor
+                self.loc_nametag = loc_nametag
+                self.nametag_fail_count = 0
+                self.last_good_nametag_time = time.time()
+                loc_player = (
+                    loc_nametag[0] - self.cfg.nametag_offset[0],
+                    loc_nametag[1] - self.cfg.nametag_offset[1]
+                )
 
         # Draw name tag detection box for debug
         draw_rectangle(self.img_frame_debug, self.loc_nametag,
                        self.img_nametag.shape, (0, 255, 0), "")
         text = f"NameTag,{round(score, 2)}," + \
                 f"{'cached' if is_cached else 'missed'}," + \
-                f"{tag_type}"
+                f"{tag_type},fails:{self.nametag_fail_count}"
         cv2.putText(self.img_frame_debug, text,
                     (self.loc_nametag[0],
                      self.loc_nametag[1] + self.img_nametag.shape[0] + 30),

@@ -60,7 +60,11 @@ class Config:
     # ────────────────
     # offset from the nametag's top-left corner to the player's center
     nametag_offset = (-50, 30) # pixel
-    nametag_diff_thres = 0.4
+    nametag_diff_thres = 0.25  # Stricter threshold for better accuracy
+    
+    # Skill effect tolerance settings
+    nametag_skill_tolerance_frames = 10  # Allow up to 10 failed detections
+    nametag_skill_tolerance_time = 3.0   # Allow up to 3 seconds of failures
 
     # ────────────────
     # Camera
