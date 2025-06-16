@@ -10,7 +10,7 @@ class Config:
     # Adjust the following key to match the in-game keybinding for your character.
 
     # Key to trigger AoE skill (e.g., Monk's AoE heal or Mage's AoE attack).
-    aoe_skill_key = "q"
+    aoe_skill_key = "a"
 
     # Key to trigger the basic attack skill, like Mage's Magic Claw.
     magic_claw_key = "z"
@@ -86,7 +86,7 @@ class Config:
     # ────────────────
     # Monster Detection
     # ────────────────
-    monster_diff_thres = 0.87 # 0.8   # template match similarity threshold
+    monster_diff_thres = 0.9 # 0.8   # template match similarity threshold
     monster_search_margin = 50  # extra margin around attack box for monster search
     blur_range = 5
     monster_detect_mode = "contour_only" # "contour_only" "color", "grayscale" "template_free"
@@ -144,7 +144,10 @@ class Config:
     exp_bar_top_left = (699, 732)
     exp_bar_bottom_right = (860, 749)
     heal_ratio = 0.5 # heal when hp is below 50%
-    add_mp_ratio = 0.3 # drink potion when mp is below 50%
+    add_mp_ratio = 0.5 # drink potion when mp is below 50%
+    # Health monitor cooldowns (to prevent spam)
+    heal_cooldown = 0.5  # seconds between heals
+    mp_cooldown = 0.5    # seconds between MP potions
 
     # ────────────────
     # Mini-Map
