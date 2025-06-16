@@ -1,5 +1,6 @@
 import threading
 import time
+import numpy as np
 from logger import logger
 
 class HealthMonitor:
@@ -23,6 +24,21 @@ class HealthMonitor:
         # Frame data (will be updated by main thread)
         self.img_frame = None
         self.frame_lock = threading.Lock()
+        self.frame_updated = threading.Event()
+        
+        # Pre-compute bar regions for better performance
+        self.hp_slice = (slice(self.cfg.hp_bar_top_left[1], self.cfg.hp_bar_bottom_right[1]+1),
+                        slice(self.cfg.hp_bar_top_left[0], self.cfg.hp_bar_bottom_right[0]+1))
+        self.mp_slice = (slice(self.cfg.mp_bar_top_left[1], self.cfg.mp_bar_bottom_right[1]+1),
+                        slice(self.cfg.mp_bar_top_left[0], self.cfg.mp_bar_bottom_right[0]+1))
+        
+        # Cache for computed bar sizes
+        hp_bar_area = (self.cfg.hp_bar_bottom_right[1] - self.cfg.hp_bar_top_left[1] + 1) * \
+                     (self.cfg.hp_bar_bottom_right[0] - self.cfg.hp_bar_top_left[0] + 1)
+        mp_bar_area = (self.cfg.mp_bar_bottom_right[1] - self.cfg.mp_bar_top_left[1] + 1) * \
+                     (self.cfg.mp_bar_bottom_right[0] - self.cfg.mp_bar_top_left[0] + 1)
+        self.hp_total_pixels = hp_bar_area - 6
+        self.mp_total_pixels = mp_bar_area - 6
         
     def start(self):
         '''
@@ -57,39 +73,44 @@ class HealthMonitor:
         
     def update_frame(self, img_frame):
         '''
-        Update frame data from main thread
+        Update frame data from main thread - only copy HP/MP regions
         '''
-        with self.frame_lock:
-            self.img_frame = img_frame
+        if not self.frame_lock.acquire(blocking=False):
+            return  # Skip update if lock is busy
+        
+        try:
+            # Only extract and store HP/MP bar regions instead of full frame
+            hp_bar = img_frame[self.hp_slice]
+            mp_bar = img_frame[self.mp_slice]
+            self.img_frame = {'hp_bar': hp_bar.copy(), 'mp_bar': mp_bar.copy()}
+            self.frame_updated.set()
+        finally:
+            self.frame_lock.release()
     
     def get_hp_mp_ratio(self):
         '''
-        Extract HP and MP ratios from current frame
+        Extract HP and MP ratios from cached bar regions
         '''
         if self.img_frame is None:
             return 1.0, 1.0
             
         with self.frame_lock:
-            img_frame = self.img_frame.copy()
+            if self.img_frame is None:
+                return 1.0, 1.0
+            hp_bar = self.img_frame['hp_bar']
+            mp_bar = self.img_frame['mp_bar']
         
-        # HP crop
-        hp_bar = img_frame[self.cfg.hp_bar_top_left[1]:self.cfg.hp_bar_bottom_right[1]+1,
-                          self.cfg.hp_bar_top_left[0]:self.cfg.hp_bar_bottom_right[0]+1]
-        # MP crop
-        mp_bar = img_frame[self.cfg.mp_bar_top_left[1]:self.cfg.mp_bar_bottom_right[1]+1,
-                          self.cfg.mp_bar_top_left[0]:self.cfg.mp_bar_bottom_right[0]+1]
+        # Optimized HP Detection using numpy operations
+        hp_gray = np.mean(hp_bar, axis=2, dtype=np.uint8)
+        empty_pixels_hp = np.sum((hp_bar[:,:,0] == hp_bar[:,:,1]) & (hp_bar[:,:,0] == hp_bar[:,:,2]))
+        empty_pixels_hp = max(0, empty_pixels_hp - 6)
+        hp_ratio = 1 - (empty_pixels_hp / max(1, self.hp_total_pixels))
         
-        # HP Detection (detect empty part)
-        empty_mask_hp = (hp_bar[:,:,0] == hp_bar[:,:,1]) & (hp_bar[:,:,0] == hp_bar[:,:,2])
-        empty_pixels_hp = max(0, len(empty_mask_hp[empty_mask_hp]) - 6)  # 6 pixel always be white
-        total_pixels_hp = hp_bar.shape[0] * hp_bar.shape[1] - 6
-        hp_ratio = 1 - (empty_pixels_hp / max(1, total_pixels_hp))
-        
-        # MP Detection (detect empty part)
-        empty_mask_mp = (mp_bar[:,:,0] == mp_bar[:,:,1]) & (mp_bar[:,:,0] == mp_bar[:,:,2])
-        empty_pixels_mp = max(0, len(empty_mask_mp[empty_mask_mp]) - 6)  # 6 pixel always be white
-        total_pixels_mp = mp_bar.shape[0] * mp_bar.shape[1] - 6
-        mp_ratio = 1 - (empty_pixels_mp / max(1, total_pixels_mp))
+        # Optimized MP Detection using numpy operations
+        mp_gray = np.mean(mp_bar, axis=2, dtype=np.uint8)
+        empty_pixels_mp = np.sum((mp_bar[:,:,0] == mp_bar[:,:,1]) & (mp_bar[:,:,0] == mp_bar[:,:,2]))
+        empty_pixels_mp = max(0, empty_pixels_mp - 6)
+        mp_ratio = 1 - (empty_pixels_mp / max(1, self.mp_total_pixels))
         
         return max(0, min(1, hp_ratio)), max(0, min(1, mp_ratio))
     
@@ -100,8 +121,14 @@ class HealthMonitor:
         while self.running:
             try:
                 if not self.enabled or self.args.disable_control:
-                    time.sleep(0.1)
+                    time.sleep(0.2)
                     continue
+                
+                # Wait for frame update with timeout
+                if not self.frame_updated.wait(timeout=0.1):
+                    continue  # No new frame, skip this cycle
+                
+                self.frame_updated.clear()
                 
                 # Get current HP/MP ratios
                 hp_ratio, mp_ratio = self.get_hp_mp_ratio()
@@ -110,22 +137,25 @@ class HealthMonitor:
                 
                 current_time = time.time()
                 
-                # Check if need to heal (with cooldown)
-                if (hp_ratio <= self.cfg.heal_ratio and 
-                    current_time - self.last_heal_time > self.cfg.heal_cooldown):
-                    self._heal()
-                    self.last_heal_time = current_time
-                    logger.info(f"Auto heal triggered, HP: {hp_ratio*100:.1f}%")
+                # Only check healing if HP is critically low (early exit optimization)
+                if hp_ratio <= self.cfg.heal_ratio:
+                    if current_time - self.last_heal_time > self.cfg.heal_cooldown:
+                        self._heal()
+                        self.last_heal_time = current_time
+                        logger.info(f"Auto heal triggered, HP: {hp_ratio*100:.1f}%")
                 
-                # Check if need MP (with cooldown)
-                if (mp_ratio <= self.cfg.add_mp_ratio and 
-                    current_time - self.last_mp_time > self.cfg.mp_cooldown):
-                    self._add_mp()
-                    self.last_mp_time = current_time
-                    logger.info(f"Auto MP triggered, MP: {mp_ratio*100:.1f}%")
+                # Only check MP if MP is low (early exit optimization)
+                if mp_ratio <= self.cfg.add_mp_ratio:
+                    if current_time - self.last_mp_time > self.cfg.mp_cooldown:
+                        self._add_mp()
+                        self.last_mp_time = current_time
+                        logger.info(f"Auto MP triggered, MP: {mp_ratio*100:.1f}%")
                 
-                # Sleep to avoid excessive CPU usage
-                time.sleep(0.05)  # Check every 50ms
+                # Adaptive sleep based on health status
+                if hp_ratio > 0.8 and mp_ratio > 0.8:
+                    time.sleep(0.1)  # Sleep longer when health is good
+                else:
+                    time.sleep(0.05)  # Check more frequently when health is low
                 
             except Exception as e:
                 logger.error(f"Health monitor error: {e}")
