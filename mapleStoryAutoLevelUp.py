@@ -700,16 +700,35 @@ class MapleStoryBot:
             - Compares the cropped image with all known arrow templates.
             - Selects the best-matching arrow direction.
             - Simulates a key press corresponding to the detected arrow direction.
-        - Repeats until the rune game ends.
+        - Repeats until the rune game ends or timeout/max attempts reached.
 
         Note:
             - Skips key press simulation if `--disable_control` flag is set.
+            - Has timeout and max attempt safeguards to prevent infinite loops.
 
         Returns:
             None
         '''
-        while self.is_in_rune_game():
+        max_attempts = 20  # Maximum number of attempts to solve rune
+        timeout_seconds = 60  # Maximum time to spend solving rune
+        start_time = time.time()
+        attempts = 0
+        
+        while self.is_in_rune_game() and attempts < max_attempts:
+            # Check timeout
+            if time.time() - start_time > timeout_seconds:
+                logger.warning(f"[solve_rune] Timeout after {timeout_seconds} seconds, giving up")
+                break
+                
+            attempts += 1
+            logger.info(f"[solve_rune] Attempt {attempts}/{max_attempts}")
+            
             for arrow_idx in [0,1,2,3]:
+                # Double-check if still in rune game before processing each arrow
+                if not self.is_in_rune_game():
+                    logger.info(f"[solve_rune] Rune game ended during arrow {arrow_idx}")
+                    break
+                    
                 # Get lastest game screen frame buffer
                 self.frame = self.capture.get_frame()
                 # Resize game screen to 1296x759
@@ -753,7 +772,10 @@ class MapleStoryBot:
                     self.kb.press_key(best_direction, 0.5)
                 time.sleep(1)
 
-        logger.info(f"[solve_rune] Solved all arrows")
+        if attempts >= max_attempts:
+            logger.warning(f"[solve_rune] Max attempts ({max_attempts}) reached, giving up")
+        else:
+            logger.info(f"[solve_rune] Solved all arrows in {attempts} attempts")
 
     def is_player_stuck(self):
         """
@@ -913,7 +935,7 @@ class MapleStoryBot:
         )
 
         if best_score < self.cfg.arrow_box_diff_thres:
-            logger.info(f"Arrow screen detected with score({score})")
+            logger.info(f"Arrow screen detected with score({best_score})")
             return True
         return False
 
