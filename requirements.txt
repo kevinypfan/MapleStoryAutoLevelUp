@@ -1,7 +1,9 @@
 opencv-python
-pywin32
+pywin32; sys_platform == "win32"
 numpy
-windows-capture
+windows-capture; sys_platform == "win32"
 pygetwindow
 pyautogui
 pynput
+pydirectinput
+pyinterception; sys_platform == "win32"

@@ -36,6 +36,20 @@ class Config:
     # ────────────────
     # FPS(Frame per Second) limit for main thread
     fps_limit = 10
+    
+    # Keyboard control mode
+    # "pyautogui": Default mode, requires game window to be in focus
+    # "winapi": Windows API mode, attempts background control (may not work with all games)
+    # "directinput": DirectInput mode for games with anti-cheat protection
+    # "interception": Low-level driver-based input (best for anti-cheat bypass, requires admin)
+    # "auto_focus": Automatically brings game window to front when needed
+    keyboard_control_mode = "pyautogui"
+    
+    # Auto focus game window before sending keys (useful for semi-background operation)
+    auto_focus_game_window = False
+    
+    # Debug keyboard control (logs all key events)
+    debug_keyboard_control = False
 
     # ────────────────
     # Mage Teleport
