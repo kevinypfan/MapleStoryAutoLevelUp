@@ -74,7 +74,7 @@ class Config:
     # ────────────────
     # aoe skill attack range relative to player position
     aoe_skill_range_x = 400 # pixels (horizontal range)
-    aoe_skill_range_y = 170  # pixels (vertical range)
+    aoe_skill_range_y = 70  # pixels (vertical range)
     # magic claw skill attack range relative to player position
     magic_claw_range_x = 350 # pixels (horizontal range)
     magic_claw_range_y = 70  # pixels (vertical range)
@@ -86,7 +86,7 @@ class Config:
     # ────────────────
     # Monster Detection
     # ────────────────
-    monster_diff_thres = 0.8 # 0.8   # template match similarity threshold
+    monster_diff_thres = 0.7 # 0.8   # template match similarity threshold
     monster_search_margin = 50  # extra margin around attack box for monster search
     blur_range = 5
     monster_detect_mode = "contour_only" # "contour_only" "color", "grayscale" "template_free"
