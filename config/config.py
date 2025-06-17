@@ -35,14 +35,14 @@ class Config:
     # System
     # ────────────────
     # FPS(Frame per Second) limit for main thread
-    fps_limit = 12
+    fps_limit = 10
 
     # ────────────────
     # Mage Teleport
     # ────────────────
     # WIP feature
     # whether to activate Mage's teleport skill while walking
-    is_use_teleport_to_walk = False
+    is_use_teleport_to_walk = True
     # Mage's teleport skill cooldown
     teleport_cooldown = 1 # second
 
@@ -105,7 +105,7 @@ class Config:
     # ────────────────
     up_drag_duration = 1.0 # hold duration for 'up' key to prevent rope-sticking (in seconds)
     down_drag_duration = 1.0 # seconds
-    watch_dog_timeout = 8 # seconds, if player doesn't move for 3 second, random perform an action
+    watch_dog_timeout = 9 # seconds, if player doesn't move for 3 second, random perform an action
     watch_dog_range = 10 # pixel, if player location is smaller than watch_dog_range, consider it doesn't move
 
     # ────────────────
