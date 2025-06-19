@@ -113,7 +113,7 @@ class Config:
     # ────────────────
     rune_warning_top_left     = (513, 196)
     rune_warning_bottom_right = (768, 236)
-    rune_warning_diff_thres = 0.2
+    rune_warning_diff_thres = 0.3
 
     # ────────────────
     # Rune Detection
