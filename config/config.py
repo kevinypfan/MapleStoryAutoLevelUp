@@ -10,32 +10,32 @@ class Config:
     # Adjust the following key to match the in-game keybinding for your character.
 
     # Key to trigger AoE skill (e.g., Monk's AoE heal or Mage's AoE attack).
-    aoe_skill_key = "q"
+    aoe_skill_key = "z"
 
     # Key to trigger the basic attack skill, like Mage's Magic Claw.
-    magic_claw_key = "w"
+    magic_claw_key = "z"
 
     # Key to trigger Mage's teleport skill
     teleport_key = "e" # set to "", if need to disable teleport skill
 
     # Key for jumping.
-    jump_key = "space"
+    jump_key = "x"
 
     # Key to use a health potion.
     heal_key = "q"
 
     # Key to use a mana potion.
-    add_mp_key = "2"
+    add_mp_key = "w"
 
     # Buff skill keys, e.g., magical sheild, angel blessing
-    buff_skill_keys     = ["s", "d", "f"]
-    buff_skill_cooldown = [190, 140, 75] # Second
+    buff_skill_keys     = ["1","2","3"]
+    buff_skill_cooldown = [600,600,600] # Second
     buff_skill_active_duration = 1 # second
     # ────────────────
     # System
     # ────────────────
     # FPS(Frame per Second) limit for main thread
-    fps_limit = 10
+    fps_limit = 24
 
     # ────────────────
     # Mage Teleport
@@ -80,7 +80,7 @@ class Config:
     aoe_skill_range_x = 400 # pixels (horizontal range)
     aoe_skill_range_y = 170  # pixels (vertical range)
     # magic claw skill attack range relative to player position
-    magic_claw_range_x = 350 # pixels (horizontal range)
+    magic_claw_range_x = 500 # pixels (horizontal range)
     magic_claw_range_y = 70  # pixels (vertical range)
     # attack cooldown time in seconds
     attack_cooldown = 0.05  # seconds between attacks
@@ -109,7 +109,7 @@ class Config:
     # ────────────────
     up_drag_duration = 1.0 # hold duration for 'up' key to prevent rope-sticking (in seconds)
     down_drag_duration = 1.0 # seconds
-    watch_dog_timeout = 10 # seconds, if player doesn't move for 3 second, random perform an action
+    watch_dog_timeout = 9 # seconds, if player doesn't move for 3 second, random perform an action
     watch_dog_range = 10 # pixel, if player location is smaller than watch_dog_range, consider it doesn't move
 
     # ────────────────
@@ -147,8 +147,8 @@ class Config:
     mp_bar_bottom_right = (678, 749)
     exp_bar_top_left = (699, 732)
     exp_bar_bottom_right = (860, 749)
-    heal_ratio = 0.5 # heal when hp is below 50%
-    add_mp_ratio = 0.5 # drink potion when mp is below 50%
+    heal_ratio = 0.3 # heal when hp is below 50%
+    add_mp_ratio = 0.02 # drink potion when mp is below 50%
     # Health monitor cooldowns (to prevent spam)
     heal_cooldown = 0.5  # seconds between heals
     mp_cooldown = 0.5    # seconds between MP potions
