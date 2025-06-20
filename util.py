@@ -6,12 +6,21 @@ Utility functions
 import cv2
 import datetime
 import os
+import platform
 
 #
 import numpy as np
 
 # Local import
 from logger import logger
+
+OS_NAME = platform.system()
+
+def is_mac():
+    return OS_NAME == 'Darwin'
+
+def is_windows():
+    return OS_NAME == 'Windows'
 
 def load_image(path, mode=cv2.IMREAD_COLOR):
     '''
@@ -21,6 +30,7 @@ def load_image(path, mode=cv2.IMREAD_COLOR):
         logger.error(f"Image not found: {path}")
         raise FileNotFoundError(f"Image not found: {path}")
 
+    # Load image
     img = cv2.imread(path, mode)
     if img is None:
         logger.error(f"Failed to load image file: {path}")
@@ -131,6 +141,29 @@ def draw_rectangle(img, top_left, size, color, text,
     cv2.putText(img, text, (top_left[0], top_left[1] - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, text_height, color, thickness)
 
+def pad_to_size(img, size, pad_value=0):
+    '''
+    pad_to_size
+    '''
+    h_img, w_img = img.shape[:2]
+    h_target, w_target = size
+
+    pad_h = max(0, h_target - h_img)
+    pad_w = max(0, w_target - w_img)
+
+    if pad_h > 0 or pad_w > 0:
+        img = cv2.copyMakeBorder(
+            img,
+            top   = pad_h // 2,
+            bottom= pad_h - pad_h // 2,
+            left  = pad_w // 2,
+            right = pad_w - pad_w // 2,
+            borderType=cv2.BORDER_CONSTANT,
+            value=pad_value
+        )
+
+    return img
+
 def find_pattern_sqdiff(
         img, img_pattern,
         last_result=None,
@@ -154,9 +187,12 @@ def find_pattern_sqdiff(
     - min_val: The matching score (lower = better for SQDIFF_NORMED).
     - bool: local search success or not
     '''
+    # Padding if img is smaller than pattern
+    img = pad_to_size(img, img_pattern.shape[:2])
+
     # search last result location first to speedup
     h, w = img_pattern.shape[:2]
-    if last_result is not None:
+    if last_result is not None and global_threshold > 0.0:
         lx, ly = last_result
         x0 = max(0, lx - local_search_radius)
         y0 = max(0, ly - local_search_radius)
@@ -182,6 +218,10 @@ def find_pattern_sqdiff(
             cv2.TM_SQDIFF_NORMED,
             mask=mask
     )
+
+    # Replace -inf/+inf/nan to 1.0 to avoid numerical error
+    res = np.nan_to_num(res, nan=1.0, posinf=1.0, neginf=1.0)
+
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
     return min_loc, min_val, False
@@ -275,6 +315,7 @@ def get_minimap_loc_size(img_frame):
 
         return x_minimap, y_minimap, w_minimap, h_minimap
 
+    logger.warning("Minimap not found in the game frame.")
     return None  # minimap not found
 
 def get_player_location_on_minimap(img_minimap, minimap_player_color=(136, 255, 255)):
@@ -292,7 +333,6 @@ def get_player_location_on_minimap(img_minimap, minimap_player_color=(136, 255, 
         (x, y): The player's location in minimap coordinates as a tuple.
                 Returns None if not enough matching pixels are found.
     """
-    # Find pixels matching the player color
     mask = cv2.inRange(img_minimap,
                         minimap_player_color,
                         minimap_player_color)
@@ -306,3 +346,80 @@ def get_player_location_on_minimap(img_minimap, minimap_player_color=(136, 255, 
     loc_player_minimap = (int(round(avg[0])), int(round(avg[1])))
 
     return loc_player_minimap
+
+def get_bar_ratio(img):
+    '''
+    Get HP/MP/EXP bar ratio with given bar image
+
+    Return: float [0.0 - 1.0]
+    '''
+    # Sample a horizontal line at the vertical center of the bar
+    h, w = img.shape[:2]
+    line_pixels = img[h // 2, :]
+
+    # Get left white boundary of bar
+    lb = 0
+    while lb < w and np.all(line_pixels[lb] >= 255):
+        lb += 1
+
+    # Get right white boundary of bar
+    rb = w - 1
+    while rb > lb and np.all(line_pixels[rb] >= 255):
+        rb -= 1
+
+    # Sanity check
+    if rb <= lb:
+        return 0.0
+
+    # Get unfill pixel count in bar
+    unfill_pixel_cnt = 0
+    tolerance = 10
+    for i in range(lb, rb + 1):
+        r, g, b = line_pixels[i]
+        if  abs(int(r) - int(g)) <= tolerance and \
+            abs(int(r) - int(b)) <= tolerance and \
+            int(r) > 0:
+            unfill_pixel_cnt += 1
+
+    # Compute fill ratio
+    total_width = rb - lb + 1
+    fill_width = total_width - unfill_pixel_cnt
+    fill_ratio = fill_width / total_width if total_width > 0 else 0.0
+    return fill_ratio
+
+def nms_matches(matches, iou_thresh=0.0):
+    '''
+    Apply non-maximum suppression to remove overlapping matches.
+
+    Args:
+        matches: List of tuples (idx, loc, score, shape)
+        iou_thresh: IoU threshold to trigger suppression (default 0.0 = any overlap)
+
+    Returns:
+        List of filtered matches (same format as input)
+    '''
+    filtered = matches.copy()
+    i = 0
+    while i < len(filtered):
+        j = i + 1
+        while j < len(filtered):
+            _, loc_i, score_i, shape_i = filtered[i]
+            _, loc_j, score_j, shape_j = filtered[j]
+
+            box_i = (loc_i[0], loc_i[1],
+                     loc_i[0] + shape_i[1], loc_i[1] + shape_i[0])
+            box_j = (loc_j[0], loc_j[1],
+                     loc_j[0] + shape_j[1], loc_j[1] + shape_j[0])
+
+            if get_iou(box_i, box_j) > iou_thresh:
+                if score_i > score_j:
+                    filtered.pop(i)
+                    i -= 1
+                    break
+                else:
+                    filtered.pop(j)
+                    j -= 1
+            j += 1
+        i += 1
+
+    return filtered

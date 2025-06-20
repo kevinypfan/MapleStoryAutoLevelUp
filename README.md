@@ -68,6 +68,10 @@ You can press 'F2' to take a screenshot, which will save to scrennshot/
 6. north forest training ground 8(北部森林訓練場8)
 7. monkey_swamp_3(猴子沼澤地3)
 8. first barrack (第一軍營)
+9. dragon territory (魔龍領地)
+10. empty house (空屋)
+11. mushroom hill (菇菇山丘)
+12. pig shores (肥肥海岸)
 
 ## Supported Monsters
 1. fire pig(火肥肥)
@@ -82,6 +86,10 @@ You can press 'F2' to take a screenshot, which will save to scrennshot/
 10. angel monkey(天使猴)
 11. skeleton soldier(骷髏士兵)
 12. skeleton officer(骷髏隊長)
+13. wild kargo (魔龍)
+14. pig (肥肥)
+15. ribbon pig (緞帶肥肥)
+16. cold eye (冰獨眼獸)
 
 If you want to try this script on other map/monster, you need to add new map to minimaps/ and add monsters icon to monster/
 
@@ -97,10 +105,34 @@ Example:
 python routeRecorder.py --new_map my_new_map
 ```
 while running this recoder
+
 Press 'F1' to stop/resume the recoder
+
 Press 'F2' to take screenshot
+
 Press 'F3' to save current route map and start record a new one
+
 Press "F4" to save current map
+
+## Auto Download Monster
+
+You can find the names of the monsters to be added at the following website:
+
+[Maplestory GMS 65](https://maplestory.wiki/GMS/65/mob)
+
+```
+python mob_maker.py
+
+>Fetching mobs from: https://maplestory.io/api/GMS/65/mob
+>You can find monster names at https://maplestory.wiki/GMS/65/mob
+>Enter mob name:Snail  <-- Example
+```
+
+Automatically download monster PNG images, excluding death animation frames, since monsters do not need to be attacked again after death and therefore do not require recognition.
+
+The monster actions such as `hit`, `move`, `skill`, and `stand` are retained. While it's uncertain whether keeping so many actions will affect performance, the expectation is that having a greater variety of monster animations will enhance the diversity and accuracy of monster recognition.
+
+Once the download is complete, you can find the downloaded image in the `Monster/{MonsterName}` folder.
 
 ## Legacy Version
 This project previously use full-size screenshot map for camera localization

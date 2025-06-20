@@ -16,26 +16,32 @@ class Config:
     magic_claw_key = "z"
 
     # Key to trigger Mage's teleport skill
-    teleport_key = "e" # set to "", if need to disable teleport skill
+    teleport_key = "" # set to "", if need to disable teleport skill
 
     # Key for jumping.
     jump_key = "x"
 
     # Key to use a health potion.
-    heal_key = "q"
+    heal_key = "1"
 
     # Key to use a mana potion.
     add_mp_key = "w"
 
+    # ────────────────
+    # Buff skill
+    # ────────────────
     # Buff skill keys, e.g., magical sheild, angel blessing
-    buff_skill_keys     = ["1","2","3"]
-    buff_skill_cooldown = [600,600,600] # Second
+    buff_skill_keys     = []
+    buff_skill_cooldown = [] # Second
     buff_skill_active_duration = 1 # second
+    buff_skill_action_cooldown = 1 # second, avoid cast buff skill after attack
+
     # ────────────────
     # System
     # ────────────────
     # FPS(Frame per Second) limit for main thread
-    fps_limit = 24
+    fps_limit = 12
+    show_debug_window = True # False, disable debug window to save system resource
 
     # ────────────────
     # Mage Teleport
@@ -60,11 +66,22 @@ class Config:
     # ────────────────
     # offset from the nametag's top-left corner to the player's center
     nametag_offset = (-50, 30) # pixel
-    nametag_diff_thres = 0.25  # Stricter threshold for better accuracy
+    nametag_diff_thres = 0.2  # Stricter threshold for better accuracy
     
     # Skill effect tolerance settings
     nametag_skill_tolerance_frames = 10  # Allow up to 10 failed detections
     nametag_skill_tolerance_time = 3.0   # Allow up to 3 seconds of failures
+
+    # Nametag template matching threshold.
+    # If the matching diff is smaller than <nametag_global_thres>
+    # it will only search area near the last frame nametag.
+    # If diff is bigger than <nametag_global_thres>, it will search the whole frame
+    # and get the best match.
+    # If you find the nametag is cached, but the location is incorrect.
+    # Disable this feature by setting nametag_global_thres = 0.0
+    nametag_global_thres = 0.2
+    nametag_split_width = 30 # pixel, vertically split nametag
+    nametag_detection_mode = "grayscale" # "grayscale", "white_mask"
 
     # ────────────────
     # Camera
@@ -141,14 +158,8 @@ class Config:
     # ────────────────
     # HP Bar and HP bar
     # ────────────────
-    hp_bar_top_left = (348, 732)
-    hp_bar_bottom_right = (509, 749)
-    mp_bar_top_left = (517, 732)
-    mp_bar_bottom_right = (678, 749)
-    exp_bar_top_left = (699, 732)
-    exp_bar_bottom_right = (860, 749)
-    heal_ratio = 0.3 # heal when hp is below 50%
-    add_mp_ratio = 0.02 # drink potion when mp is below 50%
+    heal_ratio = 0.5 # heal when hp is below 50%
+    add_mp_ratio = 0.5 # drink potion when mp is below 50%
     # Health monitor cooldowns (to prevent spam)
     heal_cooldown = 0.5  # seconds between heals
     mp_cooldown = 0.5    # seconds between MP potions
@@ -157,6 +168,7 @@ class Config:
     # Mini-Map
     # ────────────────
     minimap_upscale_factor = 4 # upscale 4 time for debug route image
+    minimap_player_color = (136, 255, 255) # BGR
 
     # ────────────────
     # Patrol Mode
@@ -200,3 +212,4 @@ class Config:
     }
 
     window_size = (752, 1282)
+

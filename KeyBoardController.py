@@ -6,11 +6,16 @@ import threading
 import time
 
 import pyautogui
-import pygetwindow as gw
 from pynput import keyboard
 
 # Local import
 from logger import logger
+from util import is_mac
+
+if is_mac():
+    import Quartz
+else:
+    import pygetwindow as gw
 
 pyautogui.PAUSE = 0  # remove delay
 
@@ -21,22 +26,36 @@ class KeyBoardController():
     def __init__(self, cfg, args):
         self.cfg = cfg
         self.command = ""
+        self.window_title = cfg.game_window_title
+        self.fps = 0 # Frame per seconds
+        # Timer
         self.t_last_up = 0.0
         self.t_last_down = 0.0
         self.t_last_toggle = 0.0
         self.t_last_screenshot = 0.0
         self.t_last_run = time.time()
+        self.t_last_action = 0.0 # Last time character perform action(attack, cast spell, ...)
+        self.t_last_buff_cast = [0] * len(self.cfg.buff_skill_keys) # Last time cast buff skill
+        # Flags
         self.is_enable = True
-        self.window_title = cfg.game_window_title
-        self.attack_key = ""
-        self.debounce_interval = 1 # second
         self.is_need_screen_shot = False
         self.is_need_toggle = False
-        self.fps = 0
+        # Parameters
+        self.debounce_interval = 1 # second
         self.fps_limit = 30
-        self.t_last_buff_cast = [0] * len(self.cfg.buff_skill_keys)
+
+
+        # use 'ctrl', 'alt' for mac, because it's hard to get around
+        # macOS's security settings
+        if is_mac():
+            self.toggle_key = keyboard.Key.ctrl
+            self.screenshot_key = keyboard.Key.alt
+        else:
+            self.toggle_key = keyboard.Key.f1
+            self.screenshot_key = keyboard.Key.f2
 
         # set up attack key
+        self.attack_key = ""
         if args.attack == "aoe_skill":
             self.attack_key = cfg.aoe_skill_key
         elif args.attack == "magic_claw":
@@ -59,11 +78,11 @@ class KeyBoardController():
             key.char
         except AttributeError:
             # Handle special keys
-            if key == keyboard.Key.f1:
+            if key == self.toggle_key:
                 if time.time() - self.t_last_toggle > self.debounce_interval:
                     self.toggle_enable()
                     self.t_last_toggle = time.time()
-            elif key == keyboard.Key.f2:
+            elif key == self.screenshot_key:
                 if time.time() - self.t_last_screenshot > self.debounce_interval:
                     self.is_need_screen_shot = True
                     self.t_last_screenshot = time.time()
@@ -113,8 +132,19 @@ class KeyBoardController():
         - True
         - False
         '''
-        active_window = gw.getActiveWindow()
-        return active_window is not None and self.window_title in active_window.title
+        if is_mac():
+            active_window = Quartz.CGWindowListCopyWindowInfo(
+                Quartz.kCGWindowListOptionOnScreenOnly | Quartz.kCGWindowListExcludeDesktopElements,
+                Quartz.kCGNullWindowID
+            )
+            for window in active_window:
+                window_name = window.get(Quartz.kCGWindowName, '')
+                if window_name and self.window_title in window_name:
+                    return True
+            return False
+        else:
+            active_window = gw.getActiveWindow()
+            return active_window is not None and self.window_title in active_window.title
 
     def release_all_key(self):
         '''
@@ -143,15 +173,6 @@ class KeyBoardController():
         self.t_last_run = time.time()
         # logger.info(f"FPS = {self.fps}")
 
-    def is_in_buffer_skill_active_duration(self):
-        '''
-        is_in_buffer_skill_active_duration
-        '''
-        for t_last_cast in self.t_last_buff_cast:
-            if time.time() - t_last_cast < self.cfg.buff_skill_active_duration:
-                return True
-        return False
-
     def run(self):
         '''
         run
@@ -163,14 +184,17 @@ class KeyBoardController():
                 continue
 
             # Buff skill
-            if not self.is_in_buffer_skill_active_duration():
-                for i, key in enumerate(self.cfg.buff_skill_keys):
-                    cooldown = self.cfg.buff_skill_cooldown[i]
-                    if time.time() - self.t_last_buff_cast[i] >= cooldown:
-                        logger.info(f"[Buff] Press buff skill key: '{key}' (cooldown: {cooldown}s)")
-                        self.press_key(key)
-                        self.t_last_buff_cast[i] = time.time()  # Reset timer
-                        break
+            # if not self.is_in_buffer_skill_active_duration():
+            for i, buff_skill_key in enumerate(self.cfg.buff_skill_keys):
+                cooldown = self.cfg.buff_skill_cooldown[i]
+                if time.time() - self.t_last_buff_cast[i] >= cooldown and \
+                    time.time() - self.t_last_action > self.cfg.buff_skill_action_cooldown:
+                    self.press_key(buff_skill_key)
+                    logger.info(f"[Buff] Press buff skill key: '{buff_skill_key}' (cooldown: {cooldown}s)")
+                    # Reset timers
+                    self.t_last_buff_cast[i] = time.time()
+                    self.t_last_action = time.time()
+                    break
 
             # check if is needed to release 'Up' key
             if time.time() - self.t_last_up > self.cfg.up_drag_duration:
@@ -244,6 +268,7 @@ class KeyBoardController():
 
             elif self.command == "attack":
                 self.press_key(self.attack_key)
+                self.t_last_action = time.time()
 
             elif self.command == "attack left":
                 pyautogui.keyUp("right")
@@ -251,6 +276,7 @@ class KeyBoardController():
                 time.sleep(self.cfg.character_turn_delay)  # Small delay for character to turn
                 self.press_key(self.attack_key)
                 pyautogui.keyUp("left")
+                self.t_last_action = time.time()
 
             elif self.command == "attack right":
                 pyautogui.keyUp("left")
@@ -258,6 +284,7 @@ class KeyBoardController():
                 time.sleep(self.cfg.character_turn_delay)  # Small delay for character to turn
                 self.press_key(self.attack_key)
                 pyautogui.keyUp("right")
+                self.t_last_action = time.time()
 
             elif self.command == "stop":
                 self.release_all_key()

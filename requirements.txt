@@ -1,7 +1,7 @@
 opencv-python
-pywin32
 numpy
-windows-capture
-pygetwindow
 pyautogui
 pynput
+requests
+windows-capture ; sys_platform == "win32"
+pyobjc-framework-Quartz ; sys_platform == "darwin" # TODO: dev macOS in another branch
