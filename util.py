@@ -15,6 +15,15 @@ import yaml
 # Local import
 from logger import logger
 
+# GPU 加速支援
+try:
+    from gpu_util import match_template_gpu, gpu_manager
+    GPU_AVAILABLE = True
+    logger.info("GPU acceleration module loaded")
+except ImportError:
+    GPU_AVAILABLE = False
+    logger.info("GPU acceleration not available, using CPU only")
+
 OS_NAME = platform.system()
 
 def is_mac():
@@ -227,23 +236,39 @@ def find_pattern_sqdiff(
 
         img_roi = img[y0:y1, x0:x1]
         if img_roi.shape[0] >= h and img_roi.shape[1] >= w:
-            res = cv2.matchTemplate(
-                    img_roi,
-                    img_pattern,
-                    cv2.TM_SQDIFF_NORMED,
-                    mask=mask
-            )
+            if GPU_AVAILABLE:
+                res = match_template_gpu(
+                        img_roi,
+                        img_pattern,
+                        cv2.TM_SQDIFF_NORMED,
+                        mask=mask
+                )
+            else:
+                res = cv2.matchTemplate(
+                        img_roi,
+                        img_pattern,
+                        cv2.TM_SQDIFF_NORMED,
+                        mask=mask
+                )
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
             if min_val < global_threshold:
                 return (x0 + min_loc[0], y0 + min_loc[1]), min_val, True
 
     # Global fallback
-    res = cv2.matchTemplate(
-            img,
-            img_pattern,
-            cv2.TM_SQDIFF_NORMED,
-            mask=mask
-    )
+    if GPU_AVAILABLE:
+        res = match_template_gpu(
+                img,
+                img_pattern,
+                cv2.TM_SQDIFF_NORMED,
+                mask=mask
+        )
+    else:
+        res = cv2.matchTemplate(
+                img,
+                img_pattern,
+                cv2.TM_SQDIFF_NORMED,
+                mask=mask
+        )
 
     # Replace -inf/+inf/nan to 1.0 to avoid numerical error
     res = np.nan_to_num(res, nan=1.0, posinf=1.0, neginf=1.0)

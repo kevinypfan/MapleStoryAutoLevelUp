@@ -28,6 +28,16 @@ else:
     from GameWindowCapturor import GameWindowCapturor
 from HealthMonitor import HealthMonitor
 
+# GPU 加速支援
+try:
+    from gpu_util import (
+        gaussian_blur_gpu, morphology_ex_gpu, resize_gpu, 
+        cvt_color_gpu, gpu_manager
+    )
+    GPU_AVAILABLE = True
+except ImportError:
+    GPU_AVAILABLE = False
+
 class MapleStoryBot:
     '''
     MapleStoryBot
@@ -101,12 +111,20 @@ class MapleStoryBot:
             # Load route*.png from minimaps/
             route_files = sorted(glob.glob(f"minimaps/{args.map}/route*.png"))
             route_files = [p for p in route_files if not p.endswith("route_rest.png")]
-            self.img_routes = [
-                cv2.cvtColor(load_image(p), cv2.COLOR_BGR2RGB) for p in route_files
-            ]
-            # Load route_rest.png from minimaps/
-            self.img_route_rest = cv2.cvtColor(
-                load_image(f"minimaps/{args.map}/route_rest.png"), cv2.COLOR_BGR2RGB)
+            if GPU_AVAILABLE:
+                self.img_routes = [
+                    cvt_color_gpu(load_image(p), cv2.COLOR_BGR2RGB) for p in route_files
+                ]
+                # Load route_rest.png from minimaps/
+                self.img_route_rest = cvt_color_gpu(
+                    load_image(f"minimaps/{args.map}/route_rest.png"), cv2.COLOR_BGR2RGB)
+            else:
+                self.img_routes = [
+                    cv2.cvtColor(load_image(p), cv2.COLOR_BGR2RGB) for p in route_files
+                ]
+                # Load route_rest.png from minimaps/
+                self.img_route_rest = cv2.cvtColor(
+                    load_image(f"minimaps/{args.map}/route_rest.png"), cv2.COLOR_BGR2RGB)
 
         # Load player's name tag
         self.img_nametag = load_image(f"nametag/{args.nametag}.png")
@@ -190,8 +208,12 @@ class MapleStoryBot:
         # Get nametag image and search image
         if self.cfg["nametag"]["mode"] == "white_mask":
             # Apply Gaussian blur for smoother white detection
-            img_camera = cv2.GaussianBlur(img_camera, (3, 3), 0)
-            img_nametag = cv2.GaussianBlur(self.img_nametag_gray, (3, 3), 0)
+            if GPU_AVAILABLE:
+                img_camera = gaussian_blur_gpu(img_camera, (3, 3), 0)
+                img_nametag = gaussian_blur_gpu(self.img_nametag_gray, (3, 3), 0)
+            else:
+                img_camera = cv2.GaussianBlur(img_camera, (3, 3), 0)
+                img_nametag = cv2.GaussianBlur(self.img_nametag_gray, (3, 3), 0)
             lower_white, upper_white = (150, 255)
             img_roi = cv2.inRange(img_camera, lower_white, upper_white)
             img_nametag  = cv2.inRange(img_nametag, lower_white, upper_white)
@@ -522,7 +544,10 @@ class MapleStoryBot:
                     black_mask[char_y_min:char_y_max, char_x_min:char_x_max] = 0
 
                     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20, 20))
-                    closed_mask = cv2.morphologyEx(black_mask, cv2.MORPH_CLOSE, kernel)
+                    if GPU_AVAILABLE:
+                        closed_mask = morphology_ex_gpu(black_mask, cv2.MORPH_CLOSE, kernel)
+                    else:
+                        closed_mask = cv2.morphologyEx(black_mask, cv2.MORPH_CLOSE, kernel)
                     # cv2.imshow("Black Mask", closed_mask)
 
                     # draw player character bounding box
@@ -554,8 +579,12 @@ class MapleStoryBot:
 
                     # Apply Gaussian blur (soften the masks)
                     blur = self.cfg["monster_detect"]["contour_blur"]
-                    img_monster_blur = cv2.GaussianBlur(mask_pattern, (blur, blur), 0)
-                    img_roi_blur = cv2.GaussianBlur(mask_roi, (blur, blur), 0)
+                    if GPU_AVAILABLE:
+                        img_monster_blur = gaussian_blur_gpu(mask_pattern, (blur, blur), 0)
+                        img_roi_blur = gaussian_blur_gpu(mask_roi, (blur, blur), 0)
+                    else:
+                        img_monster_blur = cv2.GaussianBlur(mask_pattern, (blur, blur), 0)
+                        img_roi_blur = cv2.GaussianBlur(mask_roi, (blur, blur), 0)
 
                     # Check template vs ROI size before matching
                     h_roi, w_roi = img_roi_blur.shape[:2]
@@ -579,8 +608,12 @@ class MapleStoryBot:
                             "score": res[pt[1], pt[0]],
                         })
                 elif self.cfg["monster_detect"]["mode"] == "grayscale":
-                    img_monster_gray = cv2.cvtColor(img_monster, cv2.COLOR_BGR2GRAY)
-                    img_roi_gray = cv2.cvtColor(img_roi, cv2.COLOR_BGR2GRAY)
+                    if GPU_AVAILABLE:
+                        img_monster_gray = cvt_color_gpu(img_monster, cv2.COLOR_BGR2GRAY)
+                        img_roi_gray = cvt_color_gpu(img_roi, cv2.COLOR_BGR2GRAY)
+                    else:
+                        img_monster_gray = cv2.cvtColor(img_monster, cv2.COLOR_BGR2GRAY)
+                        img_roi_gray = cv2.cvtColor(img_roi, cv2.COLOR_BGR2GRAY)
                     res = cv2.matchTemplate(
                             img_roi_gray,
                             img_monster_gray,
@@ -708,8 +741,12 @@ class MapleStoryBot:
                 # Get lastest game screen frame buffer
                 self.frame = self.capture.get_frame()
                 # Resize game screen to 1296x759
-                self.img_frame = cv2.resize(self.frame, (1296, 759),
-                                            interpolation=cv2.INTER_NEAREST)
+                if GPU_AVAILABLE:
+                    self.img_frame = resize_gpu(self.frame, (1296, 759),
+                                                interpolation=cv2.INTER_NEAREST)
+                else:
+                    self.img_frame = cv2.resize(self.frame, (1296, 759),
+                                                interpolation=cv2.INTER_NEAREST)
 
                 # Crop arrow detection box
                 x0, y0 = self.cfg["rune_solver"]["arrow_box_coord"]
@@ -921,7 +958,10 @@ class MapleStoryBot:
         # Get lastest game screen frame buffer
         self.frame = self.capture.get_frame()
         # Resize game screen to 1296x759
-        self.img_frame = cv2.resize(self.frame, (1296, 759), interpolation=cv2.INTER_NEAREST)
+        if GPU_AVAILABLE:
+            self.img_frame = resize_gpu(self.frame, (1296, 759), interpolation=cv2.INTER_NEAREST)
+        else:
+            self.img_frame = cv2.resize(self.frame, (1296, 759), interpolation=cv2.INTER_NEAREST)
 
         # Crop arrow detection box
         x, y = self.cfg["rune_solver"]["arrow_box_coord"]
@@ -1055,8 +1095,14 @@ class MapleStoryBot:
 
         # Crop region
         mini_map_crop = self.img_route_debug[y0:y1, x0:x1]
-        mini_map_crop = cv2.resize(mini_map_crop,
-                                (int(mini_map_crop.shape[1] * 3),
+        if GPU_AVAILABLE:
+            mini_map_crop = resize_gpu(mini_map_crop,
+                                    (int(mini_map_crop.shape[1] * 3),
+                                 int(mini_map_crop.shape[0] * 3)),
+                                interpolation=cv2.INTER_NEAREST)
+        else:
+            mini_map_crop = cv2.resize(mini_map_crop,
+                                    (int(mini_map_crop.shape[1] * 3),
                                  int(mini_map_crop.shape[0] * 3)),
                                 interpolation=cv2.INTER_NEAREST)
         # Paste into top-right corner of self.img_frame_debug
@@ -1131,8 +1177,12 @@ class MapleStoryBot:
             return
 
         # Resize raw frame to (1296, 759)
-        self.img_frame = cv2.resize(self.frame, (1296, 759),
-                                    interpolation=cv2.INTER_NEAREST)
+        if GPU_AVAILABLE:
+            self.img_frame = resize_gpu(self.frame, (1296, 759),
+                                        interpolation=cv2.INTER_NEAREST)
+        else:
+            self.img_frame = cv2.resize(self.frame, (1296, 759),
+                                        interpolation=cv2.INTER_NEAREST)
 
         # Get minimap coordinate and size on game window
         minimap_result = get_minimap_loc_size(self.img_frame)
@@ -1144,7 +1194,10 @@ class MapleStoryBot:
             self.img_minimap = self.img_frame[y:y+h, x:x+w]
 
         # Grayscale game window
-        self.img_frame_gray = cv2.cvtColor(self.img_frame, cv2.COLOR_BGR2GRAY)
+        if GPU_AVAILABLE:
+            self.img_frame_gray = cvt_color_gpu(self.img_frame, cv2.COLOR_BGR2GRAY)
+        else:
+            self.img_frame_gray = cv2.cvtColor(self.img_frame, cv2.COLOR_BGR2GRAY)
 
         # Image for debug use
         self.img_frame_debug = self.img_frame.copy()
@@ -1152,7 +1205,10 @@ class MapleStoryBot:
         # Get current route image
         if not self.args.patrol:
             self.img_route = self.img_routes[self.idx_routes]
-            self.img_route_debug = cv2.cvtColor(self.img_route, cv2.COLOR_RGB2BGR)
+            if GPU_AVAILABLE:
+                self.img_route_debug = cvt_color_gpu(self.img_route, cv2.COLOR_RGB2BGR)
+            else:
+                self.img_route_debug = cv2.cvtColor(self.img_route, cv2.COLOR_RGB2BGR)
 
         # Update health monitor with current frame
         self.health_monitor.update_frame(self.img_frame[self.cfg["camera"]["y_end"]:, :])
@@ -1499,11 +1555,18 @@ class MapleStoryBot:
 
         # Resize img_route_debug for better visualization
         if not self.args.patrol:
-            self.img_route_debug = cv2.resize(
-                        self.img_route_debug, (0, 0),
-                        fx=self.cfg["minimap"]["debug_window_upscale"],
-                        fy=self.cfg["minimap"]["debug_window_upscale"],
-                        interpolation=cv2.INTER_NEAREST)
+            if GPU_AVAILABLE:
+                self.img_route_debug = resize_gpu(
+                            self.img_route_debug, (0, 0),
+                            fx=self.cfg["minimap"]["debug_window_upscale"],
+                            fy=self.cfg["minimap"]["debug_window_upscale"],
+                            interpolation=cv2.INTER_NEAREST)
+            else:
+                self.img_route_debug = cv2.resize(
+                            self.img_route_debug, (0, 0),
+                            fx=self.cfg["minimap"]["debug_window_upscale"],
+                            fy=self.cfg["minimap"]["debug_window_upscale"],
+                            interpolation=cv2.INTER_NEAREST)
             cv2.imshow("Route Map Debug", self.img_route_debug)
 
 
