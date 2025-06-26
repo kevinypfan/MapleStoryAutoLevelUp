@@ -43,3 +43,8 @@
 #   enable: False              # ✅ Set to False if using pet auto-heal.
 #   add_hp_ratio: 0.4         # ❤️ drink potion when HP is below this number
 #   add_mp_ratio: 0.5         # 💙 drink potion when MP is below this number
+
+# 🔄 RUNE DETECTION MODE
+# Enable this if you experience rune detection failures (bot doesn't enter "finding_rune" status)
+# rune_detect:
+#   continuous_detection: True  # 🔄 Enable continuous rune detection (uses more CPU but more reliable)

@@ -255,6 +255,7 @@ rune_detect:
   box_width: 350              # ↔️ Width of the detection region
   box_height: 150             # ↕️ Height of the detection region
   diff_thres: 0.2             # 📏 Match threshold [0.0 ~ 1.0], higher = stricter match
+  continuous_detection: False # 🔄 Enable continuous rune detection (higher CPU usage, may help with detection failures)
 
 # ────────────────
 # 🧭 Rune-Finding Behavior

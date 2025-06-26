@@ -1381,7 +1381,7 @@ class MapleStoryBot:
         self.profiler.mark("Global Map Matching")
 
         # Check whether a rune icon is near player
-        if self.status == "finding_rune":
+        if self.status == "finding_rune" or (self.cfg["rune_detect"]["continuous_detection"] and self.status == "hunting"):
             self.update_rune_location()
             if self.loc_rune is not None:
                 self.switch_status("near_rune")
