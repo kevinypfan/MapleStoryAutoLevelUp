@@ -1,0 +1,66 @@
+# ====== Customized Configuration ======
+# Place your personal settings here.
+# These will overwrite values from config_default.yaml.
+# Focus on tuning here — check config_default.yaml for parameter full descriptions.
+
+# Note that you can create your own config_XXXXX.yaml and assign it to script by
+# adding this arguments: --cfg XXXXX
+# -----------------------------------------
+
+# 🎯 KEY BINDINGS
+# Match these to your in-game keys. Uncomment once you're done.
+key:
+  aoe_skill: "q"            # 💥 Set to the AoE skill key. Choose a key with low cooldown.
+  directional_attack: "z"   # ⚔️ Assign to your main spammable attack.
+  teleport: ""             # 🌀 Leave empty ("") if your class can’t teleport.
+  jump: "x"             # 🦘 Set to jump. No need to change unless you use a non-standard key.
+  add_hp: "1"               # ❤️ Assign to HP potion hotkey. Match with your potion shortcut.
+  add_mp: "2"               # 💧 Assign to MP potion hotkey. Match with your potion shortcut.
+
+# 🧙 BUFF SKILLS
+# Add keys for buffs you want to auto-cast. Match cooldowns with actual in-game durations.
+buff_skill:
+  keys: ["3", "4"]          # ⌨️ Add one or more buff keys here (in order).
+  cooldown: [150, 30]       # ⏱️ Set each skill’s cooldown (seconds). Be precise to avoid spamming.
+
+# ⚔️ DIRECTIONAL ATTACK SETTINGS
+# Tune these by observing the debug window.
+# Smaller range -> you will fight monster in close-range combat
+# Larger range -> you will attack monster far away, but could hit nothing if it's set to large
+directional_attack:
+  range_x: 335              # ↔️ Try reducing if you’re hitting unreachable monsters.
+  range_y: 150               # ↕️
+
+# 💥 AOE SKILL SETTINGS
+# Similar to directional attack. Adjust to match your AoE hitbox on screen.
+aoe_skill:
+  range_x: 400              # ↔️ Try reducing if you’re hitting unreachable monsters.
+  range_y: 160              # ↕️
+
+# ❤️ HEALTH MONITOR
+# Use this to auto-drink potions at specific HP/MP thresholds.
+health_monitor:
+  enable: True              # ✅ Set to False if using pet auto-heal.
+  add_hp_ratio: 0.35         # ❤️ drink potion when HP is below this number
+  add_mp_ratio: 0.15         # 💙 drink potion when MP is below this number
+
+
+nametag:
+  enable: True
+  diff_thres: 0.3
+
+system:
+  show_debug_window: False           # 🐞 Show debug window (disable to save resources)
+
+
+# ────────────────
+# Auto change channel
+# ────────────────
+# "": Off
+# "true": Change channel once other player is detected
+# "pixel": Change channel once other player move set pixels in other_player_move_pixel
+auto_change_channel: ""
+other_player_move_pixel: 10  # only work when auto_change_channel == "pixel" 
+
+rune_warning:
+  diff_thres: 0.3
