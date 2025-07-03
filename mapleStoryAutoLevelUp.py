@@ -1907,7 +1907,12 @@ class MapleStoryBot:
             # Perform a random action when player stuck
             if not self.args.patrol and self.is_player_stuck():
                 cmd_left_right, cmd_up_down, cmd_action = self.get_random_action()
-            elif attack_direction is not None and \
+            elif self.args.attack == "aoe_skill" and attack_direction is not None and \
+                time.time() - self.t_last_attack > self.cfg["directional_attack"]["cooldown"]:
+                # AoE skill attack - no direction change needed
+                cmd_action = "attack"
+                self.t_last_attack = time.time()
+            elif self.args.attack == "directional" and attack_direction is not None and \
                 time.time() - self.t_last_attack > self.cfg["directional_attack"]["cooldown"]:
                 
                 # Check if attack direction changed from last time
