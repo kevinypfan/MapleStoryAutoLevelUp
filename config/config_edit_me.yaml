@@ -47,3 +47,18 @@
 #   enable: False              # ✅ Set to False if using pet auto-heal.
 #   add_hp_ratio: 0.4         # ❤️ drink potion when HP is below this number
 #   add_mp_ratio: 0.5         # 💙 drink potion when MP is below this number
+
+# 🎲 RANDOM ACTIONS (Anti-Stuck)
+# Specify which actions to exclude when the bot tries to get unstuck.
+# The bot starts with all possible actions and removes the ones you list here.
+# random_actions:
+#   excluded_actions:
+#     left_right: []          # ↔️ e.g., ["left"] to never move left, ["right"] to never move right
+#     up_down: ["up"]         # ↕️ "up" excluded by default (prevents unwanted ladder climbing)
+#     actions: ["teleport"]   # 🦘 "teleport" excluded by default (prevents teleport issues)
+#
+# Examples:
+# - To prevent moving left when stuck: left_right: ["left"]
+# - To allow climbing when stuck: up_down: [] (removes "up" from exclusion)
+# - To allow teleport when stuck: actions: [] (removes "teleport" from exclusion)
+# - To only allow jumping: excluded_actions: {left_right: ["left", "right"], up_down: ["up", "down"], actions: ["teleport"]}

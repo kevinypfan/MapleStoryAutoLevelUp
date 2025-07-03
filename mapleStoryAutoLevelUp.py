@@ -1191,11 +1191,38 @@ class MapleStoryBot:
 
     def get_random_action(self):
         '''
-        get_random_action - pick a random action except 'up' and teleport command
+        get_random_action - pick a random action based on user exclusion settings
         '''
-        cmd_left_right = random.choice(["left", "right", "none"])
-        cmd_up_down = random.choice(["down", "none"])
-        cmd_action = random.choice(["jump", "none"])
+        # Start with all available actions
+        left_right_actions = ["left", "right", "none"]
+        up_down_actions = ["up", "down", "none"]
+        action_commands = ["jump", "teleport", "none"]
+        
+        # Remove excluded actions based on user configuration
+        excluded = self.cfg["random_actions"]["excluded_actions"]
+        for action in excluded["left_right"]:
+            if action in left_right_actions:
+                left_right_actions.remove(action)
+        for action in excluded["up_down"]:
+            if action in up_down_actions:
+                up_down_actions.remove(action)
+        for action in excluded["actions"]:
+            if action in action_commands:
+                action_commands.remove(action)
+        
+        # Ensure at least one option is available for each command type
+        if not left_right_actions:
+            left_right_actions = ["none"]
+        if not up_down_actions:
+            up_down_actions = ["none"]
+        if not action_commands:
+            action_commands = ["none"]
+        
+        # Choose random actions
+        cmd_left_right = random.choice(left_right_actions)
+        cmd_up_down = random.choice(up_down_actions)
+        cmd_action = random.choice(action_commands)
+        
         logger.warning(f"Perform random command: {cmd_left_right} {cmd_up_down} {cmd_action}")
         return cmd_left_right, cmd_up_down, cmd_action
 

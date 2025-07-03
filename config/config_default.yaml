@@ -258,6 +258,25 @@ watchdog:
   range: 10         # 🥶 Movement threshold (in pixels). If the player moves less than this, it's considered stuck.
   timeout: 10      # ⏱️ Time limit (in seconds). If the player stays still for this long, a random action is triggered.
 
+# ────────────────────────────────
+# 🎲 Random Actions (Anti-Stuck)
+# ────────────────────────────────
+# Controls which actions are excluded when the bot performs random movements to get unstuck.
+# The bot starts with all possible actions and removes the ones you specify here.
+
+random_actions:
+  # 🚫 Actions to exclude from random selection when stuck
+  # Add any action you don't want the bot to use when trying to get unstuck
+  excluded_actions:
+    left_right: []          # ↔️ e.g., ["left"] to never move left, ["right"] to never move right
+    up_down: ["up"]         # ↕️ "up" excluded by default to prevent unwanted ladder climbing
+    actions: ["teleport"]   # 🦘 "teleport" excluded by default to prevent teleport issues
+  
+  # 📝 Available actions (DO NOT MODIFY - for reference only):
+  # left_right: ["left", "right", "none"]
+  # up_down: ["up", "down", "none"] 
+  # actions: ["jump", "teleport", "none"]
+
 # ────────────────
 # ⚠️ Rune Warning Detection
 # ────────────────
