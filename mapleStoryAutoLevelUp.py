@@ -1759,20 +1759,35 @@ class MapleStoryBot:
             nearest_monster = self.get_nearest_monster()
 
         elif self.args.attack == "directional":
+            # Define attack ranges
+            left_range_x0 = self.loc_player[0] - self.cfg["directional_attack"]["range_x"]
+            left_range_x1 = self.loc_player[0]
+            right_range_x0 = self.loc_player[0]
+            right_range_x1 = self.loc_player[0] + self.cfg["directional_attack"]["range_x"]
+            range_y0 = self.loc_player[1] - self.cfg["directional_attack"]["range_y"] // 2
+            range_y1 = range_y0 + self.cfg["directional_attack"]["range_y"]
+            
+            # Draw attack ranges on debug window
+            from util import draw_rectangle
+            # Left attack range
+            draw_rectangle(
+                self.img_frame_debug, (left_range_x0, range_y0),
+                (range_y1 - range_y0, left_range_x1 - left_range_x0),
+                (0, 0, 255), "Left Attack Range"
+            )
+            # Right attack range  
+            draw_rectangle(
+                self.img_frame_debug, (right_range_x0, range_y0),
+                (range_y1 - range_y0, right_range_x1 - right_range_x0),
+                (0, 0, 255), "Right Attack Range"
+            )
+            
             # Get all monsters in attack range and classify by actual position
             all_monsters = []
             for monster in self.monster_info:
                 mx, my = monster["position"]
                 mw, mh = monster["size"]
                 monster_center_x = mx + mw // 2
-                
-                # Check if monster is within attack range (either left or right)
-                left_range_x0 = self.loc_player[0] - self.cfg["directional_attack"]["range_x"]
-                left_range_x1 = self.loc_player[0]
-                right_range_x0 = self.loc_player[0]
-                right_range_x1 = self.loc_player[0] + self.cfg["directional_attack"]["range_x"]
-                range_y0 = self.loc_player[1] - self.cfg["directional_attack"]["range_y"] // 2
-                range_y1 = range_y0 + self.cfg["directional_attack"]["range_y"]
                 
                 # Check if monster is in either attack range
                 in_left_range = (left_range_x0 <= mx + mw and mx <= left_range_x1 and 
