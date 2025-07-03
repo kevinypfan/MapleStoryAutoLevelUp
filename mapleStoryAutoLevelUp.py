@@ -1408,6 +1408,10 @@ class MapleStoryBot:
         '''
         get_attack_direction
         '''
+        # Debug: log monster detection results
+        left_exists = monster_left is not None
+        right_exists = monster_right is not None
+        logger.info(f"[Debug] Monsters detected - Left: {left_exists}, Right: {right_exists}")
         # Compute distance for left
         distance_left = float('inf')
         if monster_left is not None:
@@ -1849,6 +1853,9 @@ class MapleStoryBot:
                 cmd_left_right, cmd_up_down, cmd_action = self.get_random_action()
             elif attack_direction is not None and \
                 time.time() - self.t_last_attack > self.cfg["directional_attack"]["cooldown"]:
+                
+                # Debug: log current state
+                logger.info(f"[Debug] attack_direction={attack_direction}, last_attack_direction={self.last_attack_direction}, is_turning={self.is_turning}")
                 
                 # Check if attack direction changed from last time
                 direction_changed = (self.last_attack_direction != attack_direction)
