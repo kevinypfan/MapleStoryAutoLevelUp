@@ -1408,10 +1408,6 @@ class MapleStoryBot:
         '''
         get_attack_direction
         '''
-        # Debug: log monster detection results
-        left_exists = monster_left is not None
-        right_exists = monster_right is not None
-        logger.info(f"[Debug] Monsters detected - Left: {left_exists}, Right: {right_exists}")
         # Compute distance for left
         distance_left = float('inf')
         if monster_left is not None:
@@ -1763,9 +1759,54 @@ class MapleStoryBot:
             nearest_monster = self.get_nearest_monster()
 
         elif self.args.attack == "directional":
-            # Get nearest monster to player
-            monster_left  = self.get_nearest_monster(is_left = True)
-            monster_right = self.get_nearest_monster(is_left = False)
+            # Get all monsters in attack range and classify by actual position
+            all_monsters = []
+            for monster in self.monster_info:
+                mx, my = monster["position"]
+                mw, mh = monster["size"]
+                monster_center_x = mx + mw // 2
+                
+                # Check if monster is within attack range (either left or right)
+                left_range_x0 = self.loc_player[0] - self.cfg["directional_attack"]["range_x"]
+                left_range_x1 = self.loc_player[0]
+                right_range_x0 = self.loc_player[0]
+                right_range_x1 = self.loc_player[0] + self.cfg["directional_attack"]["range_x"]
+                range_y0 = self.loc_player[1] - self.cfg["directional_attack"]["range_y"] // 2
+                range_y1 = range_y0 + self.cfg["directional_attack"]["range_y"]
+                
+                # Check if monster is in either attack range
+                in_left_range = (left_range_x0 <= mx + mw and mx <= left_range_x1 and 
+                               range_y0 <= my + mh and my <= range_y1)
+                in_right_range = (right_range_x0 <= mx + mw and mx <= right_range_x1 and 
+                                range_y0 <= my + mh and my <= range_y1)
+                
+                if in_left_range or in_right_range:
+                    # Classify by actual position relative to player
+                    if monster_center_x < self.loc_player[0]:
+                        monster["side"] = "left"
+                    else:
+                        monster["side"] = "right"
+                    all_monsters.append(monster)
+            
+            # Find nearest monster on each side
+            monster_left = None
+            monster_right = None
+            min_dist_left = float('inf')
+            min_dist_right = float('inf')
+            
+            for monster in all_monsters:
+                mx, my = monster["position"]
+                mw, mh = monster["size"]
+                monster_center = (mx + mw // 2, my + mh // 2)
+                distance = abs(monster_center[0] - self.loc_player[0]) + abs(monster_center[1] - self.loc_player[1])
+                
+                if monster["side"] == "left" and distance < min_dist_left:
+                    min_dist_left = distance
+                    monster_left = monster
+                elif monster["side"] == "right" and distance < min_dist_right:
+                    min_dist_right = distance
+                    monster_right = monster
+            
             # Determine attack direction
             attack_direction = self.get_attack_direction(monster_left, monster_right)
 
@@ -1853,9 +1894,6 @@ class MapleStoryBot:
                 cmd_left_right, cmd_up_down, cmd_action = self.get_random_action()
             elif attack_direction is not None and \
                 time.time() - self.t_last_attack > self.cfg["directional_attack"]["cooldown"]:
-                
-                # Debug: log current state
-                logger.info(f"[Debug] attack_direction={attack_direction}, last_attack_direction={self.last_attack_direction}, is_turning={self.is_turning}")
                 
                 # Check if attack direction changed from last time
                 direction_changed = (self.last_attack_direction != attack_direction)
