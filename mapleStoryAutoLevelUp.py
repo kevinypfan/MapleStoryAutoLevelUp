@@ -81,6 +81,7 @@ class MapleStoryBot:
         self.t_last_minimap_update = time.time()
         self.t_last_turn = time.time() # Last time character turned direction
         self.current_facing = "right" # Current facing direction: "left" or "right"
+        self.is_turning = False # Whether character is currently turning
         # Patrol mode
         self.is_patrol_to_left = True # Patrol direction flag
         self.patrol_turn_point_cnt = 0 # Patrol tuning back counter
@@ -1847,24 +1848,29 @@ class MapleStoryBot:
                 
                 # Check if we need to turn before attacking
                 if attack_direction != self.current_facing:
-                    # Need to turn first, don't attack yet
-                    cmd_left_right = attack_direction
-                    cmd_action = "none"  # Don't attack while turning
-                    
-                    # Check if enough time has passed since last turn to allow attack
-                    if time.time() - self.t_last_turn > self.cfg["directional_attack"]["character_turn_delay"]:
-                        # Enough time has passed, can attack now
-                        cmd_action = "attack"
-                        self.t_last_attack = time.time()
-                    else:
-                        # Update turn timer and facing direction
+                    # Start turning if not already turning
+                    if not self.is_turning:
+                        self.is_turning = True
                         self.t_last_turn = time.time()
+                    
+                    # Check if enough time has passed to complete the turn
+                    if time.time() - self.t_last_turn > self.cfg["directional_attack"]["character_turn_delay"]:
+                        # Turn completed, can attack now
+                        cmd_action = "attack"
+                        cmd_left_right = attack_direction
+                        self.t_last_attack = time.time()
                         self.current_facing = attack_direction
+                        self.is_turning = False
+                    else:
+                        # Still turning, don't attack yet
+                        cmd_left_right = attack_direction
+                        cmd_action = "none"
                 else:
                     # Already facing the right direction, can attack immediately
                     cmd_action = "attack"
                     cmd_left_right = attack_direction
                     self.t_last_attack = time.time()
+                    self.is_turning = False
 
         elif self.status == "finding_rune":
             if self.is_player_stuck():
