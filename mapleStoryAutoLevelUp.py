@@ -79,6 +79,8 @@ class MapleStoryBot:
         self.t_last_rune_trigger = time.time() # Last time trigger rune
         self.t_rune_finding_start = 0 # Start time of rune finding. Reset when 'channel_change' and 'solve_rune'.
         self.t_last_minimap_update = time.time()
+        self.t_last_turn = time.time() # Last time character turned direction
+        self.current_facing = "right" # Current facing direction: "left" or "right"
         # Patrol mode
         self.is_patrol_to_left = True # Patrol direction flag
         self.patrol_turn_point_cnt = 0 # Patrol tuning back counter
@@ -1842,11 +1844,27 @@ class MapleStoryBot:
                 cmd_left_right, cmd_up_down, cmd_action = self.get_random_action()
             elif attack_direction is not None and \
                 time.time() - self.t_last_attack > self.cfg["directional_attack"]["cooldown"]:
-                cmd_action = "attack"
-                # Set up attack direction
-                if attack_direction in ["left", "right"]:
+                
+                # Check if we need to turn before attacking
+                if attack_direction != self.current_facing:
+                    # Need to turn first, don't attack yet
                     cmd_left_right = attack_direction
-                self.t_last_attack = time.time()
+                    cmd_action = "none"  # Don't attack while turning
+                    
+                    # Check if enough time has passed since last turn to allow attack
+                    if time.time() - self.t_last_turn > self.cfg["directional_attack"]["character_turn_delay"]:
+                        # Enough time has passed, can attack now
+                        cmd_action = "attack"
+                        self.t_last_attack = time.time()
+                    else:
+                        # Update turn timer and facing direction
+                        self.t_last_turn = time.time()
+                        self.current_facing = attack_direction
+                else:
+                    # Already facing the right direction, can attack immediately
+                    cmd_action = "attack"
+                    cmd_left_right = attack_direction
+                    self.t_last_attack = time.time()
 
         elif self.status == "finding_rune":
             if self.is_player_stuck():
