@@ -1442,13 +1442,13 @@ class MapleStoryBot:
             else:  # direction == "right"
                 return monster_center_x > player_x  # Monster should be right of player
 
-        # Only choose direction if there's a clear winner and monster is on correct side
-        if monster_left is not None and monster_right is None and \
-            is_monster_on_correct_side(monster_left, "left"):
+        # Choose direction based on monster presence, prioritize correct side
+        if monster_left is not None and monster_right is None:
+            # Only left monster exists, attack left regardless of position
             attack_direction = "left"
             # nearest_monster = monster_left
-        elif monster_right is not None and monster_left is None and \
-            is_monster_on_correct_side(monster_right, "right"):
+        elif monster_right is not None and monster_left is None:
+            # Only right monster exists, attack right regardless of position
             attack_direction = "right"
             # nearest_monster = monster_right
         elif monster_left is not None and monster_right is not None:
@@ -1477,6 +1477,10 @@ class MapleStoryBot:
             debug_text = f"L:{distance_left:.0f}({left_side_ok}) R:{distance_right:.0f}({right_side_ok}) Dir:{attack_direction}"
             cv2.putText(self.img_frame_debug, debug_text,
                         (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+            
+            # Additional debug for the specific case
+            if monster_left is not None and monster_right is None and not left_side_ok:
+                logger.warning(f"[Debug] Left monster exists but fails side check. Player at {self.loc_player[0]}, Monster at {monster_left['position'][0] + monster_left['size'][1]//2}")
         return attack_direction
 
     def is_need_change_channel(self, loc_other_players):
