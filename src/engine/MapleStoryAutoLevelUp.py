@@ -1022,8 +1022,6 @@ class MapleStoryAutoBot:
         else:
             return "edge on right"
 
-<<<<<<< HEAD
-=======
     def get_random_action(self):
         '''
         get_random_action - pick a random action based on user exclusion settings
@@ -1061,7 +1059,6 @@ class MapleStoryAutoBot:
         logger.warning(f"Perform random command: {cmd_left_right} {cmd_up_down} {cmd_action}")
         return cmd_left_right, cmd_up_down, cmd_action
 
->>>>>>> b372e67 (feat: add configurable exclusion for random anti-stuck actions)
     def update_info_on_img_frame_debug(self):
         '''
         update_info_on_img_frame_debug

@@ -20,6 +20,7 @@ else:
     import pygetwindow as gw
 
 pyautogui.PAUSE = 0  # remove delay
+pyautogui.FAILSAFE = False
 
 def key_down(key):
     '''

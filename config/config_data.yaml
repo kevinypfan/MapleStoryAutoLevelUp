@@ -12,6 +12,7 @@ eng_to_cn:
   lost_time_1: 遺失的時間1
   monkey_swamp_3: 猴子沼澤地3
   mushroom_hills: 菇菇山丘
+  mushroom_hills_2: 菇菇山丘2
   north_forest_training_ground_2: 北部森林訓練場2
   north_forest_training_ground_8: 北部森林訓練場8
   pig_shores: 肥肥海岸
@@ -19,6 +20,7 @@ eng_to_cn:
   garden_of_green_2: 藍光庭園2
   garden_of_red_2: 紅光庭園2
   foggy_forest_for_mage: 濃霧森林(需瞬移)
+  red_crab_beach_2: 紅螃蟹海灘2(需瞬移)
   # monster
   angel_monkey: 天使猴
   black_axe_stump: 黑斧木妖
@@ -55,6 +57,7 @@ map_mobs_mapping:
   lost_time_1: [evolved_ghost]
   monkey_swamp_3: [angel_monkey]
   mushroom_hills: [mushroom, green_mushroom]
+  mushroom_hills_2: [mushroom]
   north_forest_training_ground_2: [green_mushroom, spike_mushroom]
   north_forest_training_ground_8: [wind_single_eye_beast]
   pig_shores: [pig, ribbon_pig]
@@ -62,3 +65,4 @@ map_mobs_mapping:
   garden_of_green_2: [grupin]
   garden_of_red_2: [red_cellion]
   foggy_forest_for_mage: [the_book_ghost]
+  red_crab_beach_2: [lorang]

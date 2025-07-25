@@ -1,0 +1,88 @@
+# ====== Customized Configuration ======
+# Place your personal settings here.
+# These will overwrite values from config_default.yaml.
+# Focus on tuning here — check config_default.yaml for parameter full descriptions.
+
+# Note that you can create your own config_XXXXX.yaml and assign it to script by
+# adding this arguments: --cfg XXXXX
+# -----------------------------------------
+
+# 🎯 KEY BINDINGS
+# Match these to your in-game keys. Uncomment once you're done.
+key:
+  aoe_skill: "q"            # 💥 Set to the AoE skill key. Choose a key with low cooldown.
+  directional_attack: "z"   # ⚔️ Assign to your main spammable attack.
+  teleport: "t"             # 🌀 Leave empty ("") if your class can’t teleport.
+  jump: "x"             # 🦘 Set to jump. No need to change unless you use a non-standard key.
+  add_hp: "1"               # ❤️ Assign to HP potion hotkey. Match with your potion shortcut.
+  add_mp: "2"               # 💧 Assign to MP potion hotkey. Match with your potion shortcut.
+
+# 🧙 BUFF SKILLS
+# Add keys for buffs you want to auto-cast. Match cooldowns with actual in-game durations.
+buff_skill:
+  keys: ["3", "4"]          # ⌨️ Add one or more buff keys here (in order).
+  cooldown: [150, 100]       # ⏱️ Set each skill’s cooldown (seconds). Be precise to avoid spamming.
+
+# ⚔️ DIRECTIONAL ATTACK SETTINGS
+# Tune these by observing the debug window.
+# Smaller range -> you will fight monster in close-range combat
+# Larger range -> you will attack monster far away, but could hit nothing if it's set to large
+directional_attack:
+  range_x: 335              # ↔️ Try reducing if you’re hitting unreachable monsters.
+  range_y: 150               # ↕️
+  cooldown: 0.13             # ⏱️ Time between attacks (in seconds)
+  character_turn_delay: 0.13 # 🔄 Delay after turning before attacking (in seconds)
+
+# 💥 AOE SKILL SETTINGS
+# Similar to directional attack. Adjust to match your AoE hitbox on screen.
+aoe_skill:
+  range_x: 400              # ↔️ Try reducing if you’re hitting unreachable monsters.
+  range_y: 160              # ↕️
+
+# ❤️ HEALTH MONITOR
+# Use this to auto-drink potions at specific HP/MP thresholds.
+health_monitor:
+  enable: True              # ✅ Set to False if using pet auto-heal.
+  add_hp_ratio: 0.5         # ❤️ drink potion when HP is below this number
+  add_mp_ratio: 0.3         # 💙 drink potion when MP is below this number
+
+
+system:
+  show_debug_window: False           # 🐞 Show debug window (disable to save resources)
+
+
+# ────────────────
+# Auto change channel
+# ────────────────
+# "": Off
+# "true": Change channel once other player is detected
+# "pixel": Change channel once other player move set pixels in other_player_move_pixel
+auto_change_channel: "pixel"
+other_player_move_pixel: 15  # only work when auto_change_channel == "pixel" 
+
+rune_warning:
+  diff_thres: 0.3
+
+# nametag:
+#   enable: True
+#   diff_thres: 0.3
+
+
+# ────────────────────────────────
+# 🎲 Random Actions (Anti-Stuck)
+# ────────────────────────────────
+# Controls which actions are excluded when the bot performs random movements to get unstuck.
+# The bot starts with all possible actions and removes the ones you specify here.
+
+random_actions:
+  # 🚫 Actions to exclude from random selection when stuck
+  # Add any action you don't want the bot to use when trying to get unstuck
+  excluded_actions:
+    left_right: []          # ↔️ e.g., ["left"] to never move left, ["right"] to never move right
+    up_down: ["up", "down"]         # ↕️ "up" excluded by default to prevent unwanted ladder climbing
+    actions: ["teleport"]   # 🦘 "teleport" excluded by default to prevent teleport issues
+  
+  # 📝 Available actions (DO NOT MODIFY - for reference only):
+  # left_right: ["left", "right", "none"]
+  # up_down: ["up", "down", "none"] 
+  # actions: ["jump", "teleport", "none"]
