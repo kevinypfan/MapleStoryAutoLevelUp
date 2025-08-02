@@ -1,0 +1,32 @@
+aoe_skill:
+  range_x: 240
+  range_y: 160
+bot:
+  attack: aoe_skill
+  map: first_barrack
+buff_skill:
+  cooldown:
+  - 360
+  - 300
+  - 110
+  keys:
+  - '3'
+  - '4'
+  - '5'
+directional_attack:
+  range_x: 320
+  range_y: 60
+health_monitor:
+  add_hp_cooldown: 0.8
+  add_hp_percent: 40
+  add_mp_percent: 40
+key:
+  aoe_skill: a
+  directional_attack: z
+  jump: x
+  teleport: d
+system:
+  show_debug_window: false
+teleport:
+  cooldown: 2
+  is_use_teleport_to_walk: true

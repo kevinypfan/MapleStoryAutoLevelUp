@@ -1,0 +1,27 @@
+aoe_skill:
+  range_y: 160
+bot:
+  map: the_road_of_time_1
+buff_skill:
+  cooldown:
+  - 150
+  - 100
+  keys:
+  - '3'
+  - '4'
+directional_attack:
+  character_turn_delay: 0.13
+  cooldown: 0.13
+  range_x: 335
+  range_y: 150
+health_monitor:
+  add_hp_percent: 25
+  add_mp_percent: 10
+key:
+  directional_attack: z
+  jump: x
+  teleport: t
+rune_warning_cn:
+  diff_thres: 0.2
+system:
+  show_debug_window: false

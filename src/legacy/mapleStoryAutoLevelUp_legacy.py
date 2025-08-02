@@ -1031,7 +1031,8 @@ class MapleStoryBot:
         '''
         get_random_action
         '''
-        action = random.choice(list(self.cfg.color_code.values()))
+        actions = [v for v in self.cfg.color_code.values() if v != "jump down"]
+        action = random.choice(actions)
         logger.warning(f"Perform random action: {action}")
         return action
 

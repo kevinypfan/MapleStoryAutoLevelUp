@@ -12,10 +12,12 @@ eng_to_cn:
   lost_time_1: 遺失的時間1
   monkey_swamp_3: 猴子沼澤地3
   mushroom_hills: 菇菇山丘
+  mushroom_hills_2: 菇菇山丘2
   north_forest_training_ground_2: 北部森林訓練場2
   north_forest_training_ground_8: 北部森林訓練場8
   pig_shores: 肥肥海岸
   the_path_of_time_1_for_mage: 時間之路1(需瞬移)
+  the_road_of_time_1: 時間之路1
   garden_of_green_2: 藍光庭園2
   garden_of_red_2: 紅光庭園2
   foggy_forest_for_mage: 濃霧森林(需瞬移)
@@ -23,6 +25,8 @@ eng_to_cn:
   black_mountain: 烏山深處
   disposed_flower_garden: 暗影花園
   mu_Lung_wild_bear_area_2: 野熊的領土2
+  red_crab_beach_2: 紅螃蟹海灘2(需瞬移)
+  forest_labyrinth_4: 森林迷宮4
   # monster
   zombie_lupin: 天使猴
   black_axe_stump: 黑斧木妖
@@ -66,10 +70,12 @@ map_mobs_mapping:
   lost_time_1: [evolved_ghost]
   monkey_swamp_3: [zombie_lupin]
   mushroom_hills: [mushroom, green_mushroom]
+  mushroom_hills_2: [mushroom]
   north_forest_training_ground_2: [green_mushroom, spike_mushroom]
   north_forest_training_ground_8: [wind_single_eye_beast]
   pig_shores: [pig, ribbon_pig]
   the_path_of_time_1_for_mage: [evolved_ghost]
+  the_road_of_time_1: [evolved_ghost]
   garden_of_green_2: [grupin]
   garden_of_red_2: [red_cellion]
   foggy_forest_for_mage: [the_book_ghost]
@@ -77,3 +83,5 @@ map_mobs_mapping:
   black_mountain: [hodori, moon_bunny, black_axe_stump]
   disposed_flower_garden: [nependeath, dark_nependeath]
   mu_Lung_wild_bear_area_2: [grizzly, panda]
+  red_crab_beach_2: [lorang]
+  forest_labyrinth_4: [dark_stone_golem]

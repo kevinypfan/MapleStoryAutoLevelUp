@@ -1,0 +1,27 @@
+aoe_skill:
+  cooldown: 0.1
+  range_x: 280
+  range_y: 60
+bot:
+  attack: aoe_skill
+  map: the_path_of_time_1_for_mage
+directional_attack:
+  character_turn_delay: 0.13
+  cooldown: 0.13
+  range_x: 325
+  range_y: 140
+health_monitor:
+  add_hp_percent: 40
+  add_mp_percent: 10
+key:
+  aoe_skill: z
+  directional_attack: a
+  jump: x
+  teleport: d
+rune_warning_cn:
+  diff_thres: 0.2
+system:
+  show_debug_window: false
+teleport:
+  cooldown: 3
+  is_use_teleport_to_walk: true
